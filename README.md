@@ -4,7 +4,7 @@ ATC'21). For more detail about the project, please refer to our [paper](https://
 
 ## Usage
 This code is a patch of Google Pixel 4's Linux kernel. To test this code, you should  
-1. Dowload Pixel 4's kernel from 
+1. Dowload Pixel 4's kernel using repo 
 2. Patch the code in this repo
 3. Compile the patched kernel image, then flash it to Google Pixel 4.
 
