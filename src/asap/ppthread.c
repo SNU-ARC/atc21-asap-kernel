@@ -1,4 +1,4 @@
-/* SNU ARC Lab. mobile memory optimization */
+/* SNU ARC Lab. ASAP */
 /* ppthreads.c
  * prepaging threads implementation and initialization.
  * Life cycle of ppthredas is managed in sysctl.c

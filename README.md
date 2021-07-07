@@ -18,7 +18,8 @@ $ repo sync -j4
 ### Patching ASAP
 ```console
 $ git clone https://github.com/SNU-ARC/ASAP.git
-$ cp ASAP/src/* private/msm-google/ -R 
+$ cp ASAP/src/* $WD/private/msm-google/ -R 
+$ cp ASAP/config/* $WD
 ```
 
 ### Compiling and flashing kernel
