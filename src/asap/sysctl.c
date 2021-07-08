@@ -36,8 +36,8 @@ int hot_evict_num;
 int debug_file_fetch;
 int trace_filter;
 
-int file_prefetch;
-int anon_prefetch;
+int file_prepaging;
+int anon_prepaging;
 int system_server_pid;
 int iorap_mode;
 int clear_anonlist;
@@ -250,7 +250,7 @@ int app_switch_start_sysctl_handler(struct ctl_table *table, int write,
                 atomic_set(&apg_read_pages_cnt, 0);
                 
                 atomic_set(&global_switch_flag, 1); 
-                if(!freeze_ptt && anon_prefetch){
+                if(!freeze_ptt && anon_prepaging){
                         print_asap("anon_ptt_clearaccess_main start %ld\n", current_anon_ptt->sz);
                         nr_cleared = anon_ptt_clearaccess(current_anon_ptt);
                         print_asap("anon_ptt_clearaccess_main end cleared %d\n", nr_cleared);
@@ -272,7 +272,7 @@ int app_switch_start_sysctl_handler(struct ctl_table *table, int write,
                         atomic_set(&kid_work[kid], 1);
                 }
                
-                if (file_prefetch) {
+                if (file_prepaging) {
                         int idx;
                         /* node_ppthreads  */
                         if (!iorap_mode) { // node_ppthreads not supported in iorap mode
@@ -318,7 +318,7 @@ int app_switch_start_sysctl_handler(struct ctl_table *table, int write,
                                         atomic_set(&kid_work[ASAP_CORE_NUM + (ASAP_CORE_NUM - 1 - core_schedule_arr[idx])], 0);
                         }
                 }
-                if (anon_prefetch && !iorap_mode)
+                if (anon_prepaging && !iorap_mode)
                         wake_up_interruptible_all(&anon_ppthreads_wq);
                 
                         
@@ -354,7 +354,7 @@ int app_switch_end_sysctl_handler(struct ctl_table *table, int write,
                
 
 
-                if (anon_prefetch) {
+                if (anon_prepaging) {
                         for (idx = 0; idx < ASAP_CORE_NUM; idx++) {
                                 for ( ; ; ) {
                                         if (!atomic_read(&kid_work[idx]))
@@ -363,7 +363,7 @@ int app_switch_end_sysctl_handler(struct ctl_table *table, int write,
                         }
                 }
 
-                if (file_prefetch) {
+                if (file_prepaging) {
                         for (idx = ASAP_CORE_NUM; idx < ASAP_CORE_NUM; idx++) {
                                 for ( ; ; ) {
                                         if (!atomic_read(&kid_work[idx]))
@@ -375,7 +375,7 @@ int app_switch_end_sysctl_handler(struct ctl_table *table, int write,
 
                 atomic_set(&global_switch_flag, 0); 
                 // anon access bit check
-                if (current_anon_ptt && anon_prefetch) {
+                if (current_anon_ptt && anon_prepaging) {
                         // (1) anon update
                         ptt_unfreeze(current_anon_ptt);
                         ptt_unfreeze(current_anon_table->ct);
@@ -399,7 +399,7 @@ int app_switch_end_sysctl_handler(struct ctl_table *table, int write,
                 }
 
                 // file mapcount check 
-                if (file_prefetch)
+                if (file_prepaging)
                         file_scan_n_drop_pages();
                               
                 // stat report
@@ -408,7 +408,7 @@ int app_switch_end_sysctl_handler(struct ctl_table *table, int write,
                 print_asap("SwapPrefetch Stat");
                 print_asap("swap-in cnt: %d\n", swap_in_called_cnt.counter);
                 print_asap("prefetch cnt: %d\n", prefetch_cnt);
-                if (current_anon_ptt && anon_prefetch) {        
+                if (current_anon_ptt && anon_prepaging) {        
                         print_asap("anon shadow ptt sz: %ld\n", current_anon_table->ct->sz);
                         print_asap("anon ptt sz: %ld\n", current_anon_ptt->sz);
                         scan_n_fill_history(); 
@@ -421,7 +421,7 @@ int app_switch_end_sysctl_handler(struct ctl_table *table, int write,
 
 
                 // file update
-                if ( file_prefetch && current_file_ptt ) { 
+                if ( file_prepaging && current_file_ptt ) { 
                         // new member add
                         ptt_unfreeze(current_file_ptt);
                         ptt_unfreeze(current_big_file_ptt);
@@ -615,7 +615,7 @@ int trace_filter_sysctl_handler(struct ctl_table *table, int write,
 	return 0;
 }
 
-int file_prefetch_sysctl_handler(struct ctl_table *table, int write,
+int file_prepaging_sysctl_handler(struct ctl_table *table, int write,
 	void __user *buffer, size_t *length, loff_t *ppos)
 {
 	int rc;
@@ -630,7 +630,7 @@ int file_prefetch_sysctl_handler(struct ctl_table *table, int write,
 	return 0;
 }
 
-int anon_prefetch_sysctl_handler(struct ctl_table *table, int write,
+int anon_prepaging_sysctl_handler(struct ctl_table *table, int write,
 	void __user *buffer, size_t *length, loff_t *ppos)
 {
 	int rc;

@@ -188,9 +188,9 @@ int debug_file_fetch_sysctl_handler(struct ctl_table *, int,
                     void __user *, size_t *, loff_t *);
 int trace_filter_sysctl_handler(struct ctl_table *, int,
                     void __user *, size_t *, loff_t *);
-int file_prefetch_sysctl_handler(struct ctl_table *, int,
+int file_prepaging_sysctl_handler(struct ctl_table *, int,
                     void __user *, size_t *, loff_t *);
-int anon_prefetch_sysctl_handler(struct ctl_table *, int,
+int anon_prepaging_sysctl_handler(struct ctl_table *, int,
                     void __user *, size_t *, loff_t *);
 int system_server_pid_sysctl_handler(struct ctl_table *, int,
                     void __user *, size_t *, loff_t *);
@@ -383,16 +383,16 @@ struct shadow {
 struct anon_fault_buf_entry {
         unsigned long tgid;
         unsigned long va;
-}
-extern anon_fault_buf_entry anon_fault_buf[FAULT_BUF_SZ];
+};
+extern struct anon_fault_buf_entry anon_fault_buf[FAULT_BUF_SZ];
 extern unsigned int anon_fault_buf_len;
 
 struct file_fault_buf_entry {
         unsigned long mapping; 
         unsigned long start;
         unsigned long len;
-}
-extern file_fault_buf_entry file_fault_buf[FAULT_BUF_SZ];
+};
+extern struct file_fault_buf_entry file_fault_buf[FAULT_BUF_SZ];
 extern unsigned int file_fault_buf_len;
 
 /* pointer to current app's table*/

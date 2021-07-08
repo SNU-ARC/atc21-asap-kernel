@@ -68,6 +68,10 @@
 #include <linux/mount.h>
 
 #include <linux/uaccess.h>
+// Sam Son
+#include <asap/interface.h>
+
+
 #include <asm/processor.h>
 
 #ifdef CONFIG_X86
@@ -131,6 +135,7 @@ static unsigned long zero_ul;
 static unsigned long one_ul = 1;
 static unsigned long long_max = LONG_MAX;
 static int one_hundred = 100;
+static int two_hundreds = 200;
 static int one_thousand = 1000;
 #ifdef CONFIG_SCHED_WALT
 static int two_million = 2000000;
@@ -309,7 +314,51 @@ static int min_extfrag_threshold;
 static int max_extfrag_threshold = 1000;
 #endif
 
+/* SS: for mem BW measurement */
+unsigned int sysctl_set_ls_prefetch;
+int set_ls_prefetch_sysctl_handler(struct ctl_table *table, int write,
+	void __user *buffer, size_t *length, loff_t *ppos)
+{
+	int rc;
+
+	rc = proc_dointvec_minmax(table, write, buffer, length, ppos);
+	if (rc)
+		return rc;
+
+	if (write) {
+		if (sysctl_set_ls_prefetch == 0) {
+			printk("Current load/store prefetch setup: ");  
+
+			printk("load/store prefetch is disabled");  
+		} else if (sysctl_set_ls_prefetch == 1) {
+			printk("Current load/store prefetch setup: ");  
+
+			printk("load/store prefetch is enabled");
+		} else {
+			u64 value = 0;
+			u64 mask = 0x0000003000000000;
+			/* armv8 assmebly accessing CPUECTLR_EL1 register */
+			asm volatile("mrs %0, s3_0_c15_c1_4" : "=r" (value)); 
+			printk("Current CPUECTLR_EL1 value: %llx", value);  
+			printk("Current load/store prefetch setup: %llx", value & mask);  
+			printk("Echo 0 for disable, Echo 1 for enable");  
+		}
+
+	}
+
+	return 0;
+}
+
+/* end */
 static struct ctl_table kern_table[] = {
+	/* SS: for mem BW measurement */
+	{
+		.procname	= "set_ls_prefetch",
+		.data		= &sysctl_set_ls_prefetch,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= set_ls_prefetch_sysctl_handler,	
+	}, /* end */
 	{
 		.procname	= "sched_child_runs_first",
 		.data		= &sysctl_sched_child_runs_first,
@@ -1502,7 +1551,7 @@ static struct ctl_table vm_table[] = {
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec_minmax,
 		.extra1		= &zero,
-		.extra2		= &one_hundred,
+		.extra2		= &two_hundreds,
 	},
 	{
 		.procname       = "want_old_faultaround_pte",
@@ -1563,7 +1612,7 @@ static struct ctl_table vm_table[] = {
 		.procname	= "drop_caches",
 		.data		= &sysctl_drop_caches,
 		.maxlen		= sizeof(int),
-		.mode		= 0200,
+		.mode		= 0644,
 		.proc_handler	= drop_caches_sysctl_handler,
 		.extra1		= &one,
 		.extra2		= &four,
@@ -1604,6 +1653,221 @@ static struct ctl_table vm_table[] = {
 		.proc_handler	= min_free_kbytes_sysctl_handler,
 		.extra1		= &zero,
 	},
+#ifdef ENABLE_ASAP
+        { 
+                .procname   = "app_switch_start",
+                .data       = &app_switch_start,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = app_switch_start_sysctl_handler,
+                .extra1     = &zero,
+        }, 
+        {
+                .procname   = "app_switch_end",
+                .data       = &app_switch_end,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = app_switch_end_sysctl_handler,
+                .extra1     = &zero,
+        }, 
+        {
+                .procname   = "switch_target_pid",
+                .data       = &switch_target_pid,
+                .maxlen     = sizeof(pid_t),
+                .mode       = 0666,
+                .proc_handler   = switch_target_pid_sysctl_handler,
+                .extra1     = &zero,
+        },
+        {
+		.procname	= "sysctl_perf_test",
+		.mode		= 0644,
+		.proc_handler	= perf_test_sysctl_handler,
+	},
+        {
+                .procname   = "app_switch_start_filter",
+                .data       = &app_switch_start_filter,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = app_switch_start_filter_sysctl_handler,
+        },
+        {
+                .procname   = "hot_evict_num",
+                .data       = &hot_evict_num,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = hot_evict_num_sysctl_handler,
+        },
+        {
+                .procname   = "swap_in_cnt",
+                .data       = &swap_in_called_cnt.counter,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = swap_in_cnt_sysctl_handler,
+        },
+        {
+                .procname   = "debug_file_fetch",
+                .data       = &debug_file_fetch,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = debug_file_fetch_sysctl_handler,
+        },
+        {
+                .procname   = "trace_filter",
+                .data       = &trace_filter,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = trace_filter_sysctl_handler,
+        },
+        {
+                .procname   = "file_prepaging",
+                .data       = &file_prepaging,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = file_prepaging_sysctl_handler,
+        },
+        {
+                .procname   = "anon_prepaging",
+                .data       = &anon_prepaging,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = anon_prepaging_sysctl_handler,
+        },
+        {
+                .procname   = "system_server_pid",
+                .data       = &system_server_pid,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = do_nothing_sysctl_handler,
+        },
+        {
+                .procname   = "anon_page_dump",
+                .data       = &anon_page_dump,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = anon_page_dump_sysctl_handler,
+        },
+        {
+                .procname   = "anon_page_dump_clear_af",
+                .data       = &anon_page_dump_clear_af,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = do_nothing_sysctl_handler,
+        },
+        {
+                .procname   = "launch_profile_start",
+                .data       = &launch_profile_start_target,
+                .maxlen     = MAX_APP_NAME_LEN,
+                .mode       = 0666,
+                .proc_handler   = launch_profile_start_sysctl_handler,
+        },
+        {
+                .procname   = "launch_profile_end",
+                .data       = &launch_profile_end_target,
+                .maxlen     = MAX_APP_NAME_LEN,
+                .mode       = 0666,
+                .proc_handler   = launch_profile_end_sysctl_handler,
+        },
+        {
+                .procname   = "file_ptt_gen",
+                .data       = &file_ptt_gen_target,
+                .maxlen     = MAX_APP_NAME_LEN,
+                .mode       = 0666,
+                .proc_handler   = file_ptt_gen_sysctl_handler,
+        },
+        {
+                .procname   = "file_ptt_gen_threshold",
+                .data       = &file_ptt_gen_threshold,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = do_nothing_sysctl_handler,
+        },
+        {
+                .procname   = "iorap_mode",
+                .data       = &iorap_mode,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = do_nothing_sysctl_handler,
+        },
+        {
+                .procname   = "open_one_core",
+                .data       = &open_one_core,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = open_one_core_sysctl_handler,
+        },
+        {
+                .procname   = "iorap_core",
+                .data       = &iorap_core,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = do_nothing_sysctl_handler,
+        },
+        {
+                .procname   = "core_scheduling_policy",
+                .data       = &core_scheduling_policy,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = do_nothing_sysctl_handler,
+        },
+        {
+                .procname   = "apg_profile_start",
+                .data       = &apg_profile_start_target,
+                .maxlen     = MAX_APP_NAME_LEN,
+                .mode       = 0666,
+                .proc_handler   = apg_profile_start_sysctl_handler,
+        },
+        {
+                .procname   = "apg_profile_end",
+                .data       = &apg_profile_end,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = apg_profile_end_sysctl_handler,
+        },
+        {
+                .procname   = "apg_gen",
+                .data       = &apg_profile_end,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = apg_gen_sysctl_handler,
+        },
+
+
+        {
+                .procname   = "file_ptt_dump",
+                .data       = &file_ptt_print,
+                .maxlen     = sizeof(int),
+                .mode       = 0666,
+                .proc_handler   = file_ptt_dump_sysctl_handler,
+        },
+		{
+			.procname   = "clear_anonlist",
+			.data       = &clear_anonlist,
+			.maxlen     = sizeof(int),
+			.mode       = 0666,
+			.proc_handler   = clear_anonlist_sysctl_handler,
+		},
+		{
+			.procname   = "freeze_ptt",
+			.data       = &freeze_ptt,
+			.maxlen     = sizeof(int),
+			.mode       = 0666,
+			.proc_handler   = do_nothing_sysctl_handler,
+		},
+		{
+		.procname   = "default_tick",
+		.data       = &default_tick,
+		.maxlen     = sizeof(int),
+		.mode       = 0666,
+		.proc_handler   = default_tick_sysctl_handler,
+		},
+        	{
+		.procname   = "anon_page_swap",
+		.data       = &anon_page_swap,
+		.maxlen     = sizeof(int),
+		.mode       = 0666,
+		.proc_handler   = anon_page_swap_sysctl_handler,
+		},
+#endif /* ENABLE_ASAP */
 	{
 		.procname	= "watermark_scale_factor",
 		.data		= &watermark_scale_factor,
@@ -1628,7 +1892,7 @@ static struct ctl_table vm_table[] = {
 		.mode		= 0644,
 		.proc_handler	= percpu_pagelist_fraction_sysctl_handler,
 		.extra1		= &zero,
-	},
+	},	
 #ifdef CONFIG_MMU
 	{
 		.procname	= "max_map_count",
@@ -3404,7 +3668,87 @@ int proc_douintvec_capacity(struct ctl_table *table, int write,
 	return -ENOSYS;
 }
 
+
 #endif /* CONFIG_PROC_SYSCTL */
+
+#ifdef ENABLE_ASAP
+int launch_profile_start_sysctl_handler(struct ctl_table *table, int write,
+			void __user *buffer, size_t *lenp, loff_t *ppos)
+{
+	if (write) {
+                int ret;
+                proc_first_pos_non_zero_ignore(ppos, table);
+                ret = _proc_do_string((char *)(table->data), table->maxlen, write,
+			(char __user *)buffer, lenp, ppos);
+                if (ret)
+                        return ret;
+                _launch_profile_start();
+                return 0;
+        } else {
+                return _proc_do_string((char *)(table->data), table->maxlen, write,
+			(char __user *)buffer, lenp, ppos);
+        }
+
+}
+int launch_profile_end_sysctl_handler(struct ctl_table *table, int write,
+			void __user *buffer, size_t *lenp, loff_t *ppos)
+{
+	if (write) {
+                int ret;
+                proc_first_pos_non_zero_ignore(ppos, table);
+                ret = _proc_do_string((char *)(table->data), table->maxlen, write,
+			(char __user *)buffer, lenp, ppos);
+                if (ret)
+                        return ret;
+                _launch_profile_end();
+                return 0;
+        } else {
+                return _proc_do_string((char *)(table->data), table->maxlen, write,
+			(char __user *)buffer, lenp, ppos);
+        }
+
+}
+int file_ptt_gen_sysctl_handler(struct ctl_table *table, int write,
+			void __user *buffer, size_t *lenp, loff_t *ppos)
+{
+	if (write) {
+                int ret;
+                proc_first_pos_non_zero_ignore(ppos, table);
+                ret = _proc_do_string((char *)(table->data), table->maxlen, write,
+			(char __user *)buffer, lenp, ppos);
+                if (ret)
+                        return ret;
+                _file_ptt_gen();
+                return 0;
+        } else {
+                return _proc_do_string((char *)(table->data), table->maxlen, write,
+			(char __user *)buffer, lenp, ppos);
+        }
+
+}
+
+int apg_profile_start_sysctl_handler(struct ctl_table *table, int write,
+			void __user *buffer, size_t *lenp, loff_t *ppos)
+{
+	if (write) {
+                int ret;
+                proc_first_pos_non_zero_ignore(ppos, table);
+                ret = _proc_do_string((char *)(table->data), table->maxlen, write,
+			(char __user *)buffer, lenp, ppos);
+                if (ret)
+                        return ret;
+                _apg_profile_start();
+                return 0;
+        } else {
+                return _proc_do_string((char *)(table->data), table->maxlen, write,
+			(char __user *)buffer, lenp, ppos);
+        }
+
+}
+#endif /* ENABLE_ASAP */
+
+
+
 
 /*
  * No sense putting this after each symbol definition, twice,
