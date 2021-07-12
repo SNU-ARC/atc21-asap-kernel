@@ -30,7 +30,7 @@ $ cp atc21-asap-kernel/config/* $WD
 Please refer to Android official [guide](https://source.android.com/setup/build/building-kernels).
 
 ## Android Integration
-
+To test ASAP, you need to write pid of the switching application to ```/proc/sys/vm/app_switch_start``` at the beginning of the switch, and ```/proc/sys/vm/app_switch_end``` at the end of the switch. To implement this, we added a few lines to ActivityManager code in AOSP. We'll open this code and test script if there is an interest. Please contact the project maintainer.
 
 ## Maintainer
 Sam Son (sosson97@gmail.com)
