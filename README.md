@@ -18,12 +18,19 @@ $ repo sync -j4
 ### Patching ASAP
 ```console
 $ git clone https://github.com/SNU-ARC/atc21-asap-kernel.git
+```
+Update app_table_init() function in atc21-asap-kernel/src/asap/sysctl.c to match applications installed on your device.
+
+```console
 $ cp atc21-asap-kernel/src/* $WD/private/msm-google/ -R 
 $ cp atc21-asap-kernel/config/* $WD
 ```
 
 ### Compiling and flashing kernel
-Refer to Android official [guide](https://source.android.com/setup/build/building-kernels).
+Please refer to Android official [guide](https://source.android.com/setup/build/building-kernels).
+
+## Android Integration
+
 
 ## Maintainer
 Sam Son (sosson97@gmail.com)
