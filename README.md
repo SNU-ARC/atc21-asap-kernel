@@ -34,3 +34,19 @@ To test ASAP, you need to write pid of the switching application to ```/proc/sys
 
 ## Maintainer
 Sam Son (sosson97@gmail.com)
+
+## Paper
+Please cite the following paper if you use this code.
+```
+@inproceedings {273883,
+author = {Sam Son and Seung Yul Lee and Yunho Jin and Jonghyun Bae and Jinkyu Jeong and Tae Jun Ham and Jae W. Lee and Hongil Yoon},
+title = {{ASAP}: Fast Mobile Application Switch via Adaptive Prepaging},
+booktitle = {2021 {USENIX} Annual Technical Conference ({USENIX} {ATC} 21)},
+year = {2021},
+isbn = {978-1-939133-23-6},
+pages = {365--380},
+url = {https://www.usenix.org/conference/atc21/presentation/son},
+publisher = {{USENIX} Association},
+month = jul,
+}
+```
