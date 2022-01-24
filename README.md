@@ -39,7 +39,7 @@ echo 1 > /proc/sys/vm/app_switch_start
 echo 1 > /proc/sys/vm/app_switch_end
 ```
 
-To implement this in Android framework, you need to add gluing codes to ActivityManager codes. In the android version we used for the prototype, it is `execute()` function in `frameworks/base/services/core/java/com/android/server/wm/ActivityStarter.java` file. In our prototype, there was no performance difference between echoing test and the real implementation in Android framework.
+To implement this in Android framework, you need to add gluing codes to ActivityManager codes. Please refer to [this](https://github.com/SNU-ARC/atc21-asap-kernel/blob/7aea644c09ec7c8a504127f1dde02139a793338a/framework.md) example. In our prototype, there was no performance difference between the test using echo and the real implementation in Android framework.
 
 ## Maintainer
 Sam Son (sosson97@gmail.com)
