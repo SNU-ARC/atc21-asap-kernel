@@ -30,7 +30,16 @@ $ cp atc21-asap-kernel/config/* $WD
 Please refer to Android official [guide](https://source.android.com/setup/build/building-kernels).
 
 ## Android Integration
-To test ASAP, you need to write pid of the switching application to ```/proc/sys/vm/app_switch_start``` at the beginning of the switch, and ```/proc/sys/vm/app_switch_end``` at the end of the switch. To implement this, we added a few lines to ActivityManager code in AOSP. We'll open this code and test script if there is an interest. Please contact the project maintainer.
+To test ASAP, you need to write pid of the switching application to `/proc/sys/vm/switch_target_pid` and write non-zero integer to ```/proc/sys/vm/app_switch_start``` at the beginning of the switch, and ```/proc/sys/vm/app_switch_end``` at the end of the switch. For test purposes, you can maunally echo to these pseudo files to enable ASAP's functionalities before and after the application switch as follows.
+```
+echo $pid > /proc/sys/vm/switch_target_pid
+
+echo 1 > /proc/sys/vm/app_switch_start
+## do applicaiton switch e.g. using am start
+echo 1 > /proc/sys/vm/app_switch_end
+```
+
+To implement this in Android framework, you need to add gluing codes to ActivityManager codes. In the android version we used for the prototype, it is `execute()` function in `frameworks/base/services/core/java/com/android/server/wm/ActivityStarter.java` file. In our prototype, there was no performance difference between echoing test and the real implementation in Android framework.
 
 ## Maintainer
 Sam Son (sosson97@gmail.com)
