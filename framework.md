@@ -1,6 +1,6 @@
-There can be many workarounds for Android framework to write to pseudo files. This is an example for `app_switch_start`. All path names are relatvie to AOSP home directory.
+There can be many workarounds to make Android framework to write to pseudo files. This is an example for `app_switch_start`. All path names are relatvie to AOSP home directory.
 
-frameworks/base/services/core/java/com/android/server/wm/ActivityStarter.java
+frameworks/base/services/core/java/com/android/server/wm/ActivityStarter.java (this is where app switch starts)
 
 ```java
 import static android.os.Process.notifySwitchStart;
