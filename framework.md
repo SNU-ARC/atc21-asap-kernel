@@ -7,7 +7,7 @@ import static android.os.Process.notifySwitchStart;
 ...
 int execute() {
 ...
-	notifySwitchStart(0);
+	notifySwitchStart();
 ...
 }
 ```
@@ -15,46 +15,45 @@ int execute() {
 frameworks/base/core/java/android/os/Process.java
 
 ```java
-public static final void notifySwitchStart(int pid) {
-         Os.notifySwitchStart(pid);
+public static final void notifySwitchStart(void) {
+         Os.notifySwitchStart();
      }
 ```
 
 libcore/luni/src/main/java/android/system/Os.java
 
 ```java
-public static void notifySwitchStart(int pid) {
-             Libcore.rawOs.notifySwitchStart(pid);
+public static void notifySwitchStart(void) {
+             Libcore.rawOs.notifySwitchStart(void);
      }
 ```
 
 libcore/luni/src/main/java/libcore/io/Os.java
 
 ```java
-public void notifySwitchStart(int pid);
+public void notifySwitchStart(void);
 ```
 
 libcore/luni/src/main/java/libcore/io/ForwardingOs.java (implement this to suppress overriding error)
 
 ```java
-public void notifySwitchStart(int pid) { System.out.println("do nothing" + pid); }
+public void notifySwitchStart(void) { System.out.println("do nothing" + pid); }
 ```
 
 libcore/luni/src/main/java/libcore/io/Linux.java
 
 ```java
-public native void notifySwitchStart(int pid);
+public native void notifySwitchStart(void);
 ```
 
 libcore/luni/src/main/native/libcore_io_Linux.cpp
 
 ```java
 ...
-NATIVE_METHOD(Linux, notifySwitchStart, "(I)V"),
+NATIVE_METHOD(Linux, notifySwitchStart, "(V)V"),
 ...
 
-static void Linux_notifySwitchStart(JNIEnv*, jobject, jint pid) {
-         int dummy;
+static void Linux_notifySwitchStart(JNIEnv*, jobject) {
          FILE *fp = NULL;
          const char filepath[100] = "/proc/sys/vm/app_switch_start";
 
